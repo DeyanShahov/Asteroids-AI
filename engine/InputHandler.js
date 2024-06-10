@@ -1,17 +1,19 @@
 import Constants from '../constants.js';
 
 // set up event handlers
-export function registerKeyboardEvents() {
-    document.addEventListener("keydown", keyDown);
-    document.addEventListener("keyup", keyUp);
+export function registerKeyboardEvents(ship) {
+    document.addEventListener('keydown', (ev) => keyDown(ev, ship));
+    document.addEventListener('keyup', (ev) => keyUp(ev, ship));
 }
 
-export function keyDown(ev) {
+export function keyDown(ev, ship) {
     if (ship.dead) return;
 
-    switch(ev.keyCode) {
+    ev.preventDefault();
+
+    switch (ev.keyCode) {
         case 32: // spce bar ( shoot laser )
-            //shootLaser();
+            ship.shootLaser();
             break;
         case 37: // left arrow (rotate ship left)
             ship.rot = Constants.SHIP_TURN_SPD / 180 * Math.PI / Constants.FPS;
@@ -25,13 +27,13 @@ export function keyDown(ev) {
     }
 }
 
-export function keyUp(/** @type {KeyboardEvent} */ ev) {
+export function keyUp(ev, ship) {
 
-    if (ship.dead) {
-        return;
-    }
+    if (ship.dead) return;
 
-    switch(ev.keyCode) {
+    ev.preventDefault();
+
+    switch (ev.keyCode) {
         case 32: // space bar (allow shooting again)
             ship.canShoot = true;
             break;

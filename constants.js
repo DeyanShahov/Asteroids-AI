@@ -4,14 +4,14 @@ const Constants = {
     GAME_LIVES: 3, // starting number of lives
     LASER_DIST: 0.6, // max distance laser can travel as fraction of screen width
     LASER_EXPLODE_DUR: 0.1, // duration of the lasers explosion in seconds
-    LASR_MAX: 10, // maximum number of lasers on screen at once
+    LASER_MAX: 10, // maximum number of lasers on screen at once
     LASER_SPD: 500, // speed of lasers in pixels per second
 
     ROID_JAG: 0.4, // jaggeness of the asteroids ( 0 = none, 1 = lots)
     ROID_PTS_LGE: 20, // points scored for a large asteroid
     ROID_PTS_MED: 50, // points scored for a medium asteroid
     ROID_PTS_SML: 100, // point scored for a small asteroid
-    ROID_NUM: 3, // starting number of asteroids
+    ROID_NUM: 5, // starting number of asteroids
     ROID_SIZE: 100, // starting size of asteroids
     ROID_SPD: 50, // max starting speed of asteroids in pixels per second
     ROID_VERT: 10, // average number of vertices on each asteroid

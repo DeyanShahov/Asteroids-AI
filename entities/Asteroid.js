@@ -18,44 +18,32 @@ export class Asteroid {
         }
     }
 
-    destroy(asteroids, index) {
+    destroy(asteroids, index, gameLevel) {
         const x = asteroids[index].x;
         const y = asteroids[index].y;
         const r = asteroids[index].r;
 
+        let scoreTemp = 0;
+
         // split the asteroid int two if necessery
         if (r === Math.ceil(Constants.ROID_SIZE / 2)) {
             // large asteroid
-            asteroids.push(this.create(x, y, Math.ceil(Constants.ROID_SIZE/ 4)));
-            asteroids.push(this.create(x, y, Math.ceil(Constants.ROID_SIZE/ 4)));
-            //score += Constants.ROID_PTS_LGE;
-        } else if (r == Math.ceil(ROID_SIZE / 4)) { 
+            asteroids.push(new Asteroid(x, y, Math.ceil(Constants.ROID_SIZE/ 4), gameLevel));
+            asteroids.push(new Asteroid(x, y, Math.ceil(Constants.ROID_SIZE/ 4), gameLevel));
+            scoreTemp += Constants.ROID_PTS_LGE;
+        } else if (r == Math.ceil(Constants.ROID_SIZE / 4)) { 
             // medium asteroid
-            asteroids.push(this.create(x, y, Math.ceil(Constants.ROID_SIZE / 8)));
-            asteroids.push(this.create(x, y, Math.ceil(Constants.ROID_SIZE / 8)));
-            //score += Constants.ROID_PTS_MED;
+            asteroids.push(new Asteroid(x, y, Math.ceil(Constants.ROID_SIZE / 8), gameLevel));
+            asteroids.push(new Asteroid(x, y, Math.ceil(Constants.ROID_SIZE / 8), gameLevel));
+            scoreTemp += Constants.ROID_PTS_MED;
         } else {
-            //score += Constants.ROID_PTS_SML;
-        }
-
-        // check high score
-        if (score > scoreHigh) {
-            //scoreHigh = score;
-            //localStorage.setItem(Constants.SAVE_KEY_SCORE, scoreHigh);
-        }
+            scoreTemp += Constants.ROID_PTS_SML;
+        }  
 
         // deastroy the asteroid
         asteroids.splice(index, 1);
         //fhHit.play();
 
-        // calculate the ratio of remaining asteroids to determine music tempo
-        //asteroidsLeft--;
-        //music.setAsteroidRatio(asteroidsLeft / asteroidsTotal);
-        
-        // new level when no more asteroids
-        // if( asteroids.length === 0) {
-        //     levl++;
-        //     newLevle();
-        // }
+        return scoreTemp;
     };  
 }

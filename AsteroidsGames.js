@@ -16,11 +16,13 @@ const ctx = canvas.getContext('2d');
 // set up the music
 //const music = new Music('sounds/music-low.m4a', 'sounds/music-high.m4a');
 
-// set up event handlers
-registerKeyboardEvents();
+
 
 
 const scene = new BattleScene();
 scene.newGame(canvas);
+
+// set up event handlers
+registerKeyboardEvents(scene.ship);
 
 setInterval(() =>scene.update(canvas, ctx), 1000 / Constants.FPS);

@@ -32,6 +32,12 @@ export class BattleScene {
         this.createAsteroidBelt(canvas);
     }
 
+    gameOver() {
+        this.ship.dead = true;
+        this.text = 'Game Over';
+        this.textAlpha = 1.0;
+    }
+
     createAsteroidBelt(canvas) {
         this.asteroidsTotal = (Constants.ROID_NUM + this.level) * 7;
         this.asteroidsLeft = this.asteroidsTotal;
@@ -50,7 +56,7 @@ export class BattleScene {
     }
 
     update(canvas, ctx) {
-        let blinkOn = this.ship.blinkNum % 2 == 0;
+        let blinkOn = this.ship.blinkNum % 2 === 0;
         let exploding = this.ship.explodeTime > 0;
 
         // tick the music
@@ -149,7 +155,7 @@ export class BattleScene {
                 this.ship.blinkTime--;
 
                 // reduce the blink num
-                if (this.ship.blinkTime == 0) {
+                if (this.ship.blinkTime !== 0) {
                     this.ship.blinkTime = Math.ceil(Constants.SHIP_BLINK_DUR * Constants.FPS);
                     this.ship.blinkNum--;
                 }
@@ -180,7 +186,7 @@ export class BattleScene {
 
         // show ship's collision circle
         if (Constants.SHOW_BOUNDING) {
-            ctx.strokeStyle = "lime";
+            ctx.strokeStyle = 'lime';
             ctx.beginPath();
             ctx.arc(this.ship.x, this.ship.y, this.ship.r, 0, Math.PI * 2, false);
             ctx.stroke();
@@ -188,30 +194,30 @@ export class BattleScene {
 
         // show ship's centre dot
         if (Constants.SHOW_CENTRE_DOT) {
-            ctx.fillStyle = "red";
+            ctx.fillStyle = 'red';
             ctx.fillRect(this.ship.x - 1, this.ship.y - 1, 2, 2);
         }
 
         // draw the lasers
         for (var i = 0; i < this.ship.lasers.length; i++) {
-            if (ship.lasers[i].explodeTime == 0) {
-                ctx.fillStyle = "salmon";
+            if (this.ship.lasers[i].explodeTime == 0) {
+                ctx.fillStyle = 'salmon';
                 ctx.beginPath();
-                ctx.arc(ship.lasers[i].x, ship.lasers[i].y, SHIP_SIZE / 15, 0, Math.PI * 2, false);
+                ctx.arc(this.ship.lasers[i].x, this.ship.lasers[i].y, Constants.SHIP_SIZE / 15, 0, Math.PI * 2, false);
                 ctx.fill();
             } else {
                 // draw the eplosion
-                ctx.fillStyle = "orangered";
+                ctx.fillStyle = 'orangered';
                 ctx.beginPath();
-                ctx.arc(ship.lasers[i].x, ship.lasers[i].y, ship.r * 0.75, 0, Math.PI * 2, false);
+                ctx.arc(this.ship.lasers[i].x, this.ship.lasers[i].y, this.ship.r * 0.75, 0, Math.PI * 2, false);
                 ctx.fill();
-                ctx.fillStyle = "salmon";
+                ctx.fillStyle = 'salmon';
                 ctx.beginPath();
-                ctx.arc(ship.lasers[i].x, ship.lasers[i].y, ship.r * 0.5, 0, Math.PI * 2, false);
+                ctx.arc(this.ship.lasers[i].x, this.ship.lasers[i].y, this.ship.r * 0.5, 0, Math.PI * 2, false);
                 ctx.fill();
-                ctx.fillStyle = "pink";
+                ctx.fillStyle = 'pink';
                 ctx.beginPath();
-                ctx.arc(ship.lasers[i].x, ship.lasers[i].y, ship.r * 0.25, 0, Math.PI * 2, false);
+                ctx.arc(this.ship.lasers[i].x, this.ship.lasers[i].y, this.ship.r * 0.25, 0, Math.PI * 2, false);
                 ctx.fill();
             }
         }
@@ -225,11 +231,10 @@ export class BattleScene {
             ctx.font = 'small-caps ' + Constants.TEXT_SIZE + 'px dejavu sans mono';
             ctx.fillText(this.text, canvas.width / 2, canvas.height * 0.75);
             this.textAlpha -= (1.0 / Constants.TEXT_FADE_TIME / Constants.FPS);
+        } else if (this.ship.dead) {
+            // after "game over" fades, start a new game
+            this.newGame(canvas);
         }
-        // } else if (ship.dead) {
-        //     // after "game over" fades, start a new game
-        //     newGame();
-        // }
 
         // draw the lives
         let lifeColour;
@@ -252,6 +257,127 @@ export class BattleScene {
         ctx.fillStyle = 'white';
         ctx.font = (Constants.TEXT_SIZE * 0.75) + 'px dejavu sans mono';
         ctx.fillText('BEST ' + this.scoreHigh, canvas.width / 2, Constants.SHIP_SIZE);
+
+
+        // detect laser hits on asteroids
+        let ax, ay, ar, lx, ly;
+        for (let i = this.asteroids.length - 1; i >= 0; i--) {
+
+            // grab the asteroid properties
+            ax = this.asteroids[i].x;
+            ay = this.asteroids[i].y;
+            ar = this.asteroids[i].r;
+
+            // loop over the lasers
+            for (let j = this.ship.lasers.length - 1; j >= 0; j--) {
+
+                // grab the laser properties
+                lx = this.ship.lasers[j].x;
+                ly = this.ship.lasers[j].y;
+
+                // detect hits
+                if (this.ship.lasers[j].explodeTime == 0 && distanceBetweenPoints(ax, ay, lx, ly) < ar) {
+
+                    // destroy the asteroid and activate the laser explosion
+                    //destroyAsteroid(i);
+                    this.score += this.asteroids[i].destroy(this.asteroids, i, this.level);
+                    this.ship.lasers[j].explodeTime = Math.ceil(Constants.LASER_EXPLODE_DUR * Constants.FPS);
+                    break;
+                }
+            }
+
+
+            // check for asteroid collisions (when not exploding)
+            if (!exploding) {
+
+                // only check when not blinking
+                if (this.ship.blinkNum === 0 && !this.ship.dead) {
+                    for (let i = 0; i < this.asteroids.length; i++) {
+                        if (distanceBetweenPoints(this.ship.x, this.ship.y, this.asteroids[i].x, this.asteroids[i].y) < this.ship.r + this.asteroids[i].r) {
+                            //explodeShip();
+                            this.ship.explodeShip();
+                            //destroyAsteroid(i);
+                            this.score += this.asteroids[i].destroy(this.asteroids, i, this.level);
+                            break;
+                        }
+                    }
+                }
+
+                // rotate the ship
+                this.ship.a += this.ship.rot;
+
+                // move the ship
+                this.ship.x += this.ship.thrust.x;
+                this.ship.y += this.ship.thrust.y;
+            } else {
+                // reduce the explode time
+                this.ship.explodeTime--;
+
+                // reset the ship after the explosion has finished
+                if (this.ship.explodeTime === 0) {
+                    this.lives--;
+                    if (this.lives === 0) {
+                        this.gameOver();
+                    } else {
+                        this.ship = new Ship();
+                    }
+                }
+            }
+        }
+
+
+        // handle edge of screen
+        if (this.ship.x < 0 - this.ship.r) {
+            this.ship.x = canvas.width + this.ship.r;
+        } else if (this.ship.x > canvas.width + this.ship.r) {
+            this.ship.x = 0 - this.ship.r;
+        }
+        if (this.ship.y < 0 - this.ship.r) {
+            this.ship.y = canvas.height + this.ship.r;
+        } else if (this.ship.y > canvas.height + this.ship.r) {
+            this.ship.y = 0 - this.ship.r;
+        }
+
+        // move the lasers
+        for (let i = this.ship.lasers.length - 1; i >= 0; i--) {
+
+            // check distance travelled
+            if (this.ship.lasers[i].dist > Constants.LASER_DIST * canvas.width) {
+                this.ship.lasers.splice(i, 1);
+                continue;
+            }
+
+            // handle the explosion
+            if (this.ship.lasers[i].explodeTime > 0) {
+                this.ship.lasers[i].explodeTime--;
+
+                // destroy the laser after the duration is up
+                if (this.ship.lasers[i].explodeTime == 0) {
+                    this.ship.lasers.splice(i, 1);
+                    continue;
+                }
+            } else {
+                // move the laser
+                this.ship.lasers[i].x += this.ship.lasers[i].xv;
+                this.ship.lasers[i].y += this.ship.lasers[i].yv;
+
+                // calculate the distance travelled
+                this.ship.lasers[i].dist += Math.sqrt(Math.pow(this.ship.lasers[i].xv, 2) + Math.pow(this.ship.lasers[i].yv, 2));
+            }
+
+            // handle edge of screen
+            if (this.ship.lasers[i].x < 0) {
+                this.ship.lasers[i].x = canvas.width;
+            } else if (this.ship.lasers[i].x > canvas.width) {
+                this.ship.lasers[i].x = 0;
+            }
+            if (this.ship.lasers[i].y < 0) {
+                this.ship.lasers[i].y = canvas.height;
+            } else if (this.ship.lasers[i].y > canvas.height) {
+                this.ship.lasers[i].y = 0;
+            }
+        }
+
 
 
         // move the asteroids

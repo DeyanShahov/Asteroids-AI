@@ -57,4 +57,27 @@ export class Ship {
             }
         }
     }
+
+    explodeShip() {
+        this.explodeTime = Math.ceil(Constants.SHIP_EXPLODE_DUR * Constants.FPS);
+        //fxExplode.play();
+    }
+
+    shootLaser() {
+        // create the laser object
+        if (this.canShoot && this.lasers.length < Constants.LASER_MAX) {
+            this.lasers.push({ // from the nose of the ship
+                x: this.x + 4 / 3 * this.r * Math.cos(this.a),
+                y: this.y - 4 / 3 * this.r * Math.sin(this.a),
+                xv: Constants.LASER_SPD * Math.cos(this.a) / Constants.FPS,
+                yv: -Constants.LASER_SPD * Math.sin(this.a) / Constants.FPS,
+                dist: 0,
+                explodeTime: 0
+            });
+            //fxLaser.play();  
+        }
+
+        // prevent further shooting
+        this.canShoot = false;
+    }
 }
