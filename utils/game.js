@@ -23,3 +23,4 @@ export function checkScoreHigh(score, scoreHigh) {
 //         newLevle();
 //     }
 // }
+

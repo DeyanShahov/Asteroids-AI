@@ -11,7 +11,7 @@ const Constants = {
     ROID_PTS_LGE: 20, // points scored for a large asteroid
     ROID_PTS_MED: 50, // points scored for a medium asteroid
     ROID_PTS_SML: 100, // point scored for a small asteroid
-    ROID_NUM: 50, // starting number of asteroids
+    ROID_NUM: 3, // starting number of asteroids
     ROID_SIZE: 100, // starting size of asteroids
     ROID_SPD: 50, // max starting speed of asteroids in pixels per second
     ROID_VERT: 10, // average number of vertices on each asteroid
@@ -24,8 +24,8 @@ const Constants = {
     SHIP_THRUST: 5, // acceleration of the ship in pixels per second
     SHIP_TURN_SPD: 360, // turn speed in degrees per second
 
-    SHOW_BOUNDING: true, // show or hide collision bounding
-    SHOW_CENTRE_DOT: true, // show or hide ships centre dot
+    SHOW_BOUNDING: false, // show or hide collision bounding
+    SHOW_CENTRE_DOT: false, // show or hide ships centre dot
 
     MUSIC_ON: true,
     SOUND_ON: true,

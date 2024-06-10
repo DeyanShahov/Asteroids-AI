@@ -1,4 +1,5 @@
 import Constants from '../constants.js';
+import { fxExplode, fxLaser } from '../engine/SoundHandler.js';
 
 export class Ship {
     constructor(canvas) {
@@ -42,7 +43,7 @@ export class Ship {
             x: canv.width / 2,
             y: canv.height / 2,
             a: 90 / 180 * Math.PI, // convert to radians
-            r: SHIP_SIZE / 2,
+            r: Constants.SHIP_SIZE / 2,
             blinkNum: Math.ceil(Constants.SHIP_INV_DUR / Constants.SHIP_BLINK_DUR),
             blinkTime: Math.ceil(Constants.SHIP_BLINK_DUR * Constants.FPS),
             canShoot: true,
@@ -60,7 +61,7 @@ export class Ship {
 
     explodeShip() {
         this.explodeTime = Math.ceil(Constants.SHIP_EXPLODE_DUR * Constants.FPS);
-        //fxExplode.play();
+        fxExplode.play();
     }
 
     shootLaser() {
@@ -74,7 +75,7 @@ export class Ship {
                 dist: 0,
                 explodeTime: 0
             });
-            //fxLaser.play();  
+            fxLaser.play();  
         }
 
         // prevent further shooting

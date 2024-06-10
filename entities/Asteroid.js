@@ -1,4 +1,5 @@
 import Constants from '../constants.js';
+import { fxHit } from '../engine/SoundHandler.js';
 
 export class Asteroid {
     constructor(asteroidX, asteroidY, asteroidRadius, gameLevel) {
@@ -42,7 +43,7 @@ export class Asteroid {
 
         // deastroy the asteroid
         asteroids.splice(index, 1);
-        //fhHit.play();
+        fxHit.play();
 
         return scoreTemp;
     };  

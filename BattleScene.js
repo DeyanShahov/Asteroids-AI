@@ -1,5 +1,7 @@
 import Constants from './constants.js';
 import { registerKeyboardEvents } from './engine/InputHandler.js';
+import { music } from './engine/MusicHandler.js';
+import { fxThrust } from './engine/SoundHandler.js';
 import { Asteroid } from './entities/Asteroid.js';
 import { Ship } from './entities/Ship.js';
 import { distanceBetweenPoints } from './utils/asteroid.js';
@@ -47,14 +49,14 @@ export class BattleScene {
     }
 
     conditionForNewLevel(asteroidsLength, canvas) {
-        if( asteroidsLength === 0) {
+        if (asteroidsLength === 0) {
             this.level++;
             this.newLevel(canvas);
         }
     }
 
     newLevel(canvas) {
-        //music.setAsteroidRatio(1);
+        music.setAsteroidRatio(1);
         this.text = 'Level ' + (this.level + 1);
         this.textAlpha = 1.0;
         this.createAsteroidBelt(canvas);
@@ -76,7 +78,7 @@ export class BattleScene {
             do {
                 x = Math.floor(Math.random() * canvas.width);
                 y = Math.floor(Math.random() * canvas.height);
-            }while (distanceBetweenPoints(this.ship.x, this.ship.y, x, y) < Constants.ROID_SIZE * 2 + this.ship.r);
+            } while (distanceBetweenPoints(this.ship.x, this.ship.y, x, y) < Constants.ROID_SIZE * 2 + this.ship.r);
             const aster = new Asteroid(x, y, Math.ceil(Constants.ROID_SIZE / 2), this.level);
             this.asteroids.push(aster);
         }
@@ -138,7 +140,7 @@ export class BattleScene {
         if (this.ship.thrusting && !this.ship.dead) {
             this.ship.thrust.x += Constants.SHIP_THRUST * Math.cos(this.ship.a) / Constants.FPS;
             this.ship.thrust.y -= Constants.SHIP_THRUST * Math.sin(this.ship.a) / Constants.FPS;
-            //fxThrust.play();
+            fxThrust.play();
 
             // draw the thruster
             if (!exploding && blinkOn) {
@@ -166,7 +168,7 @@ export class BattleScene {
             // apply friction (slow the ship down when not thrusting)
             this.ship.thrust.x -= Constants.FRICTION * this.ship.thrust.x / Constants.FPS;
             this.ship.thrust.y -= Constants.FRICTION * this.ship.thrust.y / Constants.FPS;
-            //fxThrust.stop();
+            fxThrust.stop();
         }
 
         // draw the triangular ship
@@ -308,9 +310,9 @@ export class BattleScene {
                     // destroy the asteroid and activate the laser explosion
                     this.score += this.asteroids[i].destroy(this.asteroids, i, this.level);
                     this.ship.lasers[j].explodeTime = Math.ceil(Constants.LASER_EXPLODE_DUR * Constants.FPS);
-                    
+
                     // set high score
-                    this.scoreHigh = checkScoreHigh(this.score, this.scoreHigh);        
+                    this.scoreHigh = checkScoreHigh(this.score, this.scoreHigh);
                     // new level when no more asteroids
                     this.conditionForNewLevel(this.asteroids.length, canvas);
                     break;
