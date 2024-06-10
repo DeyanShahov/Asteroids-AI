@@ -16,11 +16,6 @@ const ctx = canvas.getContext('2d');
 
 const scene = new BattleScene();
 
-
-
 scene.newGame(canvas);
-
-// set up event handlers
-registerKeyboardEvents(scene.ship);
 
 setInterval(() => scene.update(canvas, ctx), 1000 / Constants.FPS);

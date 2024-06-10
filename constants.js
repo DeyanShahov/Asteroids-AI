@@ -11,7 +11,7 @@ const Constants = {
     ROID_PTS_LGE: 20, // points scored for a large asteroid
     ROID_PTS_MED: 50, // points scored for a medium asteroid
     ROID_PTS_SML: 100, // point scored for a small asteroid
-    ROID_NUM: 1, // starting number of asteroids
+    ROID_NUM: 50, // starting number of asteroids
     ROID_SIZE: 100, // starting size of asteroids
     ROID_SPD: 50, // max starting speed of asteroids in pixels per second
     ROID_VERT: 10, // average number of vertices on each asteroid
@@ -19,7 +19,7 @@ const Constants = {
     SAVE_KEY_SCORE: 'highscore', // save key for local storage of high score
     SHIP_BLINK_DUR: 0.1, // duration in secons of a single blink during ships invisibility
     SHIP_EXPLODE_DUR: 0.3, // duration of the ships explosion in second
-    SHIP_INV_DUR: 3, // duration of the ships invisibility in seconds
+    SHIP_INV_DUR: 10, // duration of the ships invisibility in seconds
     SHIP_SIZE: 30, // ship height in pixels
     SHIP_THRUST: 5, // acceleration of the ship in pixels per second
     SHIP_TURN_SPD: 360, // turn speed in degrees per second

@@ -29,6 +29,7 @@ export class BattleScene {
         this.ship = new Ship(canvas);
         this.scoreHigh = 0;
 
+        // set up event handlers
         registerKeyboardEvents(this.ship);
 
         // get the high score from local storage
@@ -38,6 +39,9 @@ export class BattleScene {
         } else {
             this.scoreHigh = parseInt(scoreStr);
         }
+
+        // reset asteroid count before load new game
+        this.asteroids = [];
 
         this.newLevel(canvas);
     }
