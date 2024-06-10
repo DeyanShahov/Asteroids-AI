@@ -1,8 +1,14 @@
+import Constants from '../constants.js';
+
 // check high score
-// if (score > scoreHigh) {
-//     scoreHigh = score;
-//     localStorage.setItem(Constants.SAVE_KEY_SCORE, scoreHigh);
-// }
+export function checkScoreHigh(score, scoreHigh) {
+    if (score > scoreHigh) {
+        localStorage.setItem(Constants.SAVE_KEY_SCORE, scoreHigh);
+        return score;
+    }
+
+    return scoreHigh;
+};
 
 
 // calculate the ratio of remaining asteroids to determine music tempo
@@ -11,7 +17,9 @@
 
 
 // new level when no more asteroids
-// if( asteroids.length === 0) {
-//     levl++;
-//     newLevle();
+// export function conditionForNewLevel(asteroidsLength) {
+//     if( asteroidsLength === 0) {
+//         levl++;
+//         newLevle();
+//     }
 // }

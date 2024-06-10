@@ -1,7 +1,9 @@
 import Constants from './constants.js';
+import { registerKeyboardEvents } from './engine/InputHandler.js';
 import { Asteroid } from './entities/Asteroid.js';
 import { Ship } from './entities/Ship.js';
 import { distanceBetweenPoints } from './utils/asteroid.js';
+import { checkScoreHigh } from './utils/game.js';
 
 export class BattleScene {
     asteroids = [];
@@ -27,6 +29,28 @@ export class BattleScene {
         this.ship = new Ship(canvas);
         this.scoreHigh = 0;
 
+        registerKeyboardEvents(this.ship);
+
+        // get the high score from local storage
+        let scoreStr = localStorage.getItem(Constants.SAVE_KEY_SCORE);
+        if (scoreStr === null) {
+            this.scoreHigh = 0;
+        } else {
+            this.scoreHigh = parseInt(scoreStr);
+        }
+
+        this.newLevel(canvas);
+    }
+
+    conditionForNewLevel(asteroidsLength, canvas) {
+        if( asteroidsLength === 0) {
+            this.level++;
+            this.newLevel(canvas);
+        }
+    }
+
+    newLevel(canvas) {
+        //music.setAsteroidRatio(1);
         this.text = 'Level ' + (this.level + 1);
         this.textAlpha = 1.0;
         this.createAsteroidBelt(canvas);
@@ -48,8 +72,7 @@ export class BattleScene {
             do {
                 x = Math.floor(Math.random() * canvas.width);
                 y = Math.floor(Math.random() * canvas.height);
-                //}while (distanceBetweenPoints(ship.x, ship.y, x, y) < Constants.ROID_SIZE * 2 + ship.r);
-            } while (distanceBetweenPoints(110, 90, x, y) < Constants.ROID_SIZE * 2 + 15);
+            }while (distanceBetweenPoints(this.ship.x, this.ship.y, x, y) < Constants.ROID_SIZE * 2 + this.ship.r);
             const aster = new Asteroid(x, y, Math.ceil(Constants.ROID_SIZE / 2), this.level);
             this.asteroids.push(aster);
         }
@@ -162,23 +185,23 @@ export class BattleScene {
             }
         } else {
             // draw the explosion (concentric circles of different colours)
-            ctx.fillStyle = "darkred";
+            ctx.fillStyle = 'darkred';
             ctx.beginPath();
             ctx.arc(this.ship.x, this.ship.y, this.ship.r * 1.7, 0, Math.PI * 2, false);
             ctx.fill();
-            ctx.fillStyle = "red";
+            ctx.fillStyle = 'red';
             ctx.beginPath();
             ctx.arc(this.ship.x, this.ship.y, this.ship.r * 1.4, 0, Math.PI * 2, false);
             ctx.fill();
-            ctx.fillStyle = "orange";
+            ctx.fillStyle = 'orange';
             ctx.beginPath();
             ctx.arc(this.ship.x, this.ship.y, this.ship.r * 1.1, 0, Math.PI * 2, false);
             ctx.fill();
-            ctx.fillStyle = "yellow";
+            ctx.fillStyle = 'yellow';
             ctx.beginPath();
             ctx.arc(this.ship.x, this.ship.y, this.ship.r * 0.8, 0, Math.PI * 2, false);
             ctx.fill();
-            ctx.fillStyle = "white";
+            ctx.fillStyle = 'white';
             ctx.beginPath();
             ctx.arc(this.ship.x, this.ship.y, this.ship.r * 0.5, 0, Math.PI * 2, false);
             ctx.fill();
@@ -199,8 +222,8 @@ export class BattleScene {
         }
 
         // draw the lasers
-        for (var i = 0; i < this.ship.lasers.length; i++) {
-            if (this.ship.lasers[i].explodeTime == 0) {
+        for (let i = 0; i < this.ship.lasers.length; i++) {
+            if (this.ship.lasers[i].explodeTime === 0) {
                 ctx.fillStyle = 'salmon';
                 ctx.beginPath();
                 ctx.arc(this.ship.lasers[i].x, this.ship.lasers[i].y, Constants.SHIP_SIZE / 15, 0, Math.PI * 2, false);
@@ -238,8 +261,8 @@ export class BattleScene {
 
         // draw the lives
         let lifeColour;
-        for (var i = 0; i < this.lives; i++) {
-            lifeColour = exploding && i == this.lives - 1 ? 'red' : 'white';
+        for (let i = 0; i < this.lives; i++) {
+            lifeColour = exploding && i === this.lives - 1 ? 'red' : 'white';
             this.ship.drawShip(ctx, Constants.SHIP_SIZE + i * Constants.SHIP_SIZE * 1.2, Constants.SHIP_SIZE, 0.5 * Math.PI, lifeColour);
         }
 
@@ -279,48 +302,54 @@ export class BattleScene {
                 if (this.ship.lasers[j].explodeTime == 0 && distanceBetweenPoints(ax, ay, lx, ly) < ar) {
 
                     // destroy the asteroid and activate the laser explosion
-                    //destroyAsteroid(i);
                     this.score += this.asteroids[i].destroy(this.asteroids, i, this.level);
                     this.ship.lasers[j].explodeTime = Math.ceil(Constants.LASER_EXPLODE_DUR * Constants.FPS);
+                    
+                    // set high score
+                    this.scoreHigh = checkScoreHigh(this.score, this.scoreHigh);        
+                    // new level when no more asteroids
+                    this.conditionForNewLevel(this.asteroids.length, canvas);
                     break;
                 }
             }
+        }
 
+        // check for asteroid collisions (when not exploding)
+        if (!exploding) {
 
-            // check for asteroid collisions (when not exploding)
-            if (!exploding) {
+            // only check when not blinking
+            if (this.ship.blinkNum === 0 && !this.ship.dead) {
+                for (let i = 0; i < this.asteroids.length; i++) {
+                    if (distanceBetweenPoints(this.ship.x, this.ship.y, this.asteroids[i].x, this.asteroids[i].y) < this.ship.r + this.asteroids[i].r) {
+                        this.ship.explodeShip();
+                        this.score += this.asteroids[i].destroy(this.asteroids, i, this.level);
 
-                // only check when not blinking
-                if (this.ship.blinkNum === 0 && !this.ship.dead) {
-                    for (let i = 0; i < this.asteroids.length; i++) {
-                        if (distanceBetweenPoints(this.ship.x, this.ship.y, this.asteroids[i].x, this.asteroids[i].y) < this.ship.r + this.asteroids[i].r) {
-                            //explodeShip();
-                            this.ship.explodeShip();
-                            //destroyAsteroid(i);
-                            this.score += this.asteroids[i].destroy(this.asteroids, i, this.level);
-                            break;
-                        }
+                        // set high score
+                        this.scoreHigh = checkScoreHigh(this.score, this.scoreHigh);
+                        // new level when no more asteroids
+                        this.conditionForNewLevel(this.asteroids.length, canvas);
+                        break;
                     }
                 }
+            }
 
-                // rotate the ship
-                this.ship.a += this.ship.rot;
+            // rotate the ship
+            this.ship.a += this.ship.rot;
 
-                // move the ship
-                this.ship.x += this.ship.thrust.x;
-                this.ship.y += this.ship.thrust.y;
-            } else {
-                // reduce the explode time
-                this.ship.explodeTime--;
+            // move the ship
+            this.ship.x += this.ship.thrust.x;
+            this.ship.y += this.ship.thrust.y;
+        } else {
+            // reduce the explode time
+            this.ship.explodeTime--;
 
-                // reset the ship after the explosion has finished
-                if (this.ship.explodeTime === 0) {
-                    this.lives--;
-                    if (this.lives === 0) {
-                        this.gameOver();
-                    } else {
-                        this.ship = new Ship();
-                    }
+            // reset the ship after the explosion has finished
+            if (this.ship.explodeTime === 0) {
+                this.lives--;
+                if (this.lives === 0) {
+                    this.gameOver();
+                } else {
+                    this.ship = new Ship();
                 }
             }
         }
@@ -378,8 +407,6 @@ export class BattleScene {
             }
         }
 
-
-
         // move the asteroids
         for (var i = 0; i < this.asteroids.length; i++) {
             this.asteroids[i].x += this.asteroids[i].xv;
@@ -397,6 +424,5 @@ export class BattleScene {
                 this.asteroids[i].y = 0 - this.asteroids[i].r
             }
         }
-
     }
 }

@@ -1,12 +1,23 @@
 import Constants from '../constants.js';
 
+let currentShip = null;
+
 // set up event handlers
 export function registerKeyboardEvents(ship) {
-    document.addEventListener('keydown', (ev) => keyDown(ev, ship));
-    document.addEventListener('keyup', (ev) => keyUp(ev, ship));
+    if (currentShip) {
+        document.removeEventListener('keydown', currentShip.keyDownHandler);
+        document.removeEventListener('keyup', currentShip.keyUpHandler);
+    }
+
+    currentShip = ship;
+    currentShip.keyDownHandler = (ev) => keyDown(ev, currentShip);
+    currentShip.keyUpHandler = (ev) => keyUp(ev, currentShip);
+
+    document.addEventListener('keydown', currentShip.keyDownHandler);
+    document.addEventListener('keyup', currentShip.keyUpHandler);
 }
 
-export function keyDown(ev, ship) {
+function keyDown(ev, ship) {
     if (ship.dead) return;
 
     ev.preventDefault();
@@ -27,7 +38,7 @@ export function keyDown(ev, ship) {
     }
 }
 
-export function keyUp(ev, ship) {
+function keyUp(ev, ship) {
 
     if (ship.dead) return;
 

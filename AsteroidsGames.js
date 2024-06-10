@@ -2,10 +2,8 @@ import { BattleScene } from './BattleScene.js';
 import Constants from './constants.js';
 import { registerKeyboardEvents } from './engine/InputHandler.js';
 
-
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-
 
 // set up sound effects
 //const fxExplode = new Sound('sounds/explode.m4a');
@@ -16,13 +14,13 @@ const ctx = canvas.getContext('2d');
 // set up the music
 //const music = new Music('sounds/music-low.m4a', 'sounds/music-high.m4a');
 
-
-
-
 const scene = new BattleScene();
+
+
+
 scene.newGame(canvas);
 
 // set up event handlers
 registerKeyboardEvents(scene.ship);
 
-setInterval(() =>scene.update(canvas, ctx), 1000 / Constants.FPS);
+setInterval(() => scene.update(canvas, ctx), 1000 / Constants.FPS);

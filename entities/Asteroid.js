@@ -31,7 +31,7 @@ export class Asteroid {
             asteroids.push(new Asteroid(x, y, Math.ceil(Constants.ROID_SIZE/ 4), gameLevel));
             asteroids.push(new Asteroid(x, y, Math.ceil(Constants.ROID_SIZE/ 4), gameLevel));
             scoreTemp += Constants.ROID_PTS_LGE;
-        } else if (r == Math.ceil(Constants.ROID_SIZE / 4)) { 
+        } else if (r === Math.ceil(Constants.ROID_SIZE / 4)) { 
             // medium asteroid
             asteroids.push(new Asteroid(x, y, Math.ceil(Constants.ROID_SIZE / 8), gameLevel));
             asteroids.push(new Asteroid(x, y, Math.ceil(Constants.ROID_SIZE / 8), gameLevel));
