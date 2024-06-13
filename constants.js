@@ -11,7 +11,7 @@ const Constants = {
     ROID_PTS_LGE: 20, // points scored for a large asteroid
     ROID_PTS_MED: 50, // points scored for a medium asteroid
     ROID_PTS_SML: 100, // point scored for a small asteroid
-    ROID_NUM: 3, // starting number of asteroids
+    ROID_NUM: 2, // starting number of asteroids
     ROID_SIZE: 100, // starting size of asteroids
     ROID_SPD: 50, // max starting speed of asteroids in pixels per second
     ROID_VERT: 10, // average number of vertices on each asteroid

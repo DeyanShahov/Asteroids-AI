@@ -1,11 +1,12 @@
 import Constants from './constants.js';
-import { registerKeyboardEvents } from './engine/InputHandler.js';
+import { registerKeyboardEvents } from './engine/InputKeyboardHandler.js';
 import { music } from './engine/MusicHandler.js';
 import { fxThrust } from './engine/SoundHandler.js';
 import { Asteroid } from './entities/Asteroid.js';
 import { Ship } from './entities/Ship.js';
 import { distanceBetweenPoints } from './utils/asteroid.js';
 import { checkScoreHigh } from './utils/game.js';
+import { pollGamepads, registerGamepadEvents } from './engine/InputGamepadHandler.js';
 
 export class BattleScene {
     asteroids = [];
@@ -33,6 +34,7 @@ export class BattleScene {
 
         // set up event handlers
         registerKeyboardEvents(this.ship);
+        registerGamepadEvents();
 
         // get the high score from local storage
         let scoreStr = localStorage.getItem(Constants.SAVE_KEY_SCORE);
@@ -85,11 +87,13 @@ export class BattleScene {
     }
 
     update(canvas, ctx) {
+        pollGamepads(this.ship);
+        
         let blinkOn = this.ship.blinkNum % 2 === 0;
         let exploding = this.ship.explodeTime > 0;
 
         // tick the music
-        //music.tick();
+        music.tick();
 
         // draw space
         ctx.fillStyle = 'black';
@@ -315,6 +319,9 @@ export class BattleScene {
                     this.scoreHigh = checkScoreHigh(this.score, this.scoreHigh);
                     // new level when no more asteroids
                     this.conditionForNewLevel(this.asteroids.length, canvas);
+                    // calculate the ratio of remaining asteroids to determine music tempo
+                    this.asteroidsLeft--;
+                    music.setAsteroidRatio(this.asteroidsLeft / this.asteroidsTotal);
                     break;
                 }
             }
@@ -334,6 +341,9 @@ export class BattleScene {
                         this.scoreHigh = checkScoreHigh(this.score, this.scoreHigh);
                         // new level when no more asteroids
                         this.conditionForNewLevel(this.asteroids.length, canvas);
+                        // calculate the ratio of remaining asteroids to determine music tempo
+                        this.asteroidsLeft--;
+                        music.setAsteroidRatio(this.asteroidsLeft / this.asteroidsTotal);
                         break;
                     }
                 }
