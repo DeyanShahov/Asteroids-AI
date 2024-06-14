@@ -24,7 +24,9 @@ const Constants = {
     SHIP_THRUST: 5, // acceleration of the ship in pixels per second
     SHIP_TURN_SPD: 360, // turn speed in degrees per second
 
-    SHOW_BOUNDING: false, // show or hide collision bounding
+    AUTOMATION_ON: true,
+
+    SHOW_BOUNDING: true, // show or hide collision bounding
     SHOW_CENTRE_DOT: false, // show or hide ships centre dot
 
     MUSIC_ON: true,
