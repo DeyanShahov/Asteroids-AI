@@ -5,16 +5,16 @@ let currentShip = null;
 // set up event handlers
 export function registerKeyboardEvents(ship) {
     if (currentShip) {
-        document.removeEventListener('keydown', currentShip.keyDownHandler);
-        document.removeEventListener('keyup', currentShip.keyUpHandler);
+        window.removeEventListener('keydown', currentShip.keyDownHandler);
+        window.removeEventListener('keyup', currentShip.keyUpHandler);
     }
 
     currentShip = ship;
     currentShip.keyDownHandler = (ev) => keyDown(ev, currentShip);
     currentShip.keyUpHandler = (ev) => keyUp(ev, currentShip);
 
-    document.addEventListener('keydown', currentShip.keyDownHandler);
-    document.addEventListener('keyup', currentShip.keyUpHandler);
+    window.addEventListener('keydown', currentShip.keyDownHandler);
+    window.addEventListener('keyup', currentShip.keyUpHandler);
 }
 
 function keyDown(ev, ship) {

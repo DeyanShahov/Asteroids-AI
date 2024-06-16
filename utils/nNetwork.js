@@ -12,8 +12,8 @@ export function neuralNetworkTrein(ship) {
 
     for (let i = 0; i < Constants.NUM_SAMPLES; i++) {
         // random asteroids location
-        ax = Math.random() * (Constants.CANVAS_WIDTH + Constants.ROID_SIZE) - Constants.ROID_SIZE / 2;
-        ay = Math.random() * (Constants.CANVAS_HEIGHT + Constants.ROID_SIZE) - Constants.ROID_SIZE / 2;
+        ax = Math.random() * (Constants.SCREEN_WIDTH + Constants.ROID_SIZE) - Constants.ROID_SIZE / 2;
+        ay = Math.random() * (Constants.SCREEN_HEIGHT + Constants.ROID_SIZE) - Constants.ROID_SIZE / 2;
 
         // ship angle and position
         sa = Math.random() * Math.PI * 2;
@@ -54,8 +54,8 @@ export function neuralNetworkTrein(ship) {
 export function normaliseInputToNetwork(roidX, roidY, roidAngle, shipA) {
     // normalise the values to between 0 and 1
     let input = [];
-    input[0] = (roidX + Constants.ROID_SIZE / 2) / (Constants.CANVAS_WIDTH + Constants.ROID_SIZE);
-    input[1] = (roidY + Constants.ROID_SIZE / 2) / (Constants.CANVAS_HEIGHT + Constants.ROID_SIZE);
+    input[0] = (roidX + Constants.ROID_SIZE / 2) / (Constants.SCREEN_WIDTH + Constants.ROID_SIZE);
+    input[1] = (roidY + Constants.ROID_SIZE / 2) / (Constants.SCREEN_HEIGHT + Constants.ROID_SIZE);
     input[2] = roidAngle / (Math.PI * 2);
     input[3] = shipA / (Math.PI * 2);
     return input;

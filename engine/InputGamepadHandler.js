@@ -16,8 +16,8 @@ function handleGamepadDisconnected(event) {
 }
 
 export function registerGamepadEvents() {
-    document.addEventListener('gamepadconnected', handleGamepadConnected);
-    document.addEventListener('gamepaddisconnected', handleGamepadDisconnected);
+    window.addEventListener('gamepadconnected', handleGamepadConnected);
+    window.addEventListener('gamepaddisconnected', handleGamepadDisconnected);
 }
 
 export function pollGamepads(ship) {

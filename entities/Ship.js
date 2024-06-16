@@ -2,9 +2,9 @@ import Constants from '../constants.js';
 import { fxExplode, fxLaser } from '../engine/SoundHandler.js';
 
 export class Ship {
-    constructor(canvas) {
-        this.x = canvas.width / 2;
-        this.y = canvas.height / 2;
+    constructor() {
+        this.x = Constants.SCREEN_WIDTH / 2;
+        this.y = Constants.SCREEN_HEIGHT / 2;
         this.a = 90 / 180 * Math.PI; // convert to radius
         this.r = Constants.SHIP_SIZE / 2;
         this.blinkNum = Math.ceil(Constants.SHIP_INV_DUR / Constants.SHIP_BLINK_DUR);
@@ -38,10 +38,10 @@ export class Ship {
         ctx.stroke();
     }
 
-    newShip(canv) {
+    newShip() {
         return {
-            x: canv.width / 2,
-            y: canv.height / 2,
+            x: Constants.SCREEN_WIDTH / 2,
+            y: Constants.SCREEN_HEIGHT / 2,
             a: 90 / 180 * Math.PI, // convert to radians
             r: Constants.SHIP_SIZE / 2,
             blinkNum: Math.ceil(Constants.SHIP_INV_DUR / Constants.SHIP_BLINK_DUR),

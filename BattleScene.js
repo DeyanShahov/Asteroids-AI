@@ -23,17 +23,15 @@ export class BattleScene {
     asteroidsLeft = 0;
     asteroidsTotal = 0;
 
-    //aiShootTime = 0;
-
     constructor() {
 
     }
 
-    newGame(canvas) {
+    newGame() {
         this.level = 0;
         this.lives = Constants.GAME_LIVES;
         this.score = 0;
-        this.ship = new Ship(canvas);
+        this.ship = new Ship();
         this.scoreHigh = 0;
 
         // set up event handlers
@@ -54,21 +52,21 @@ export class BattleScene {
         // reset asteroid count before load new game
         this.asteroids = [];
 
-        this.newLevel(canvas);
+        this.newLevel();
     }
 
-    conditionForNewLevel(asteroidsLength, canvas) {
+    conditionForNewLevel(asteroidsLength) {
         if (asteroidsLength === 0) {
             this.level++;
-            this.newLevel(canvas);
+            this.newLevel();
         }
     }
 
-    newLevel(canvas) {
+    newLevel() {
         music.setAsteroidRatio(1);
         this.text = 'Level ' + (this.level + 1);
         this.textAlpha = 1.0;
-        this.createAsteroidBelt(canvas);
+        this.createAsteroidBelt();
     }
 
     gameOver() {
@@ -77,16 +75,16 @@ export class BattleScene {
         this.textAlpha = 1.0;
     }
 
-    createAsteroidBelt(canvas) {
+    createAsteroidBelt() {
         this.asteroidsTotal = (Constants.ROID_NUM + this.level) * 7;
         this.asteroidsLeft = this.asteroidsTotal;
 
         let x, y;
-        for (let i = 0; i < Constants.ROID_NUM + this.level; i++) {
+        for (let i = 0; i < Constants.ROID_NUM + this.level * 5; i++) {
             // random asteroidlocation ( not touching spcaeship )
             do {
-                x = Math.floor(Math.random() * canvas.width);
-                y = Math.floor(Math.random() * canvas.height);
+                x = Math.floor(Math.random() * Constants.SCREEN_WIDTH);
+                y = Math.floor(Math.random() * Constants.SCREEN_HEIGHT);
             } while (distanceBetweenPoints(this.ship.x, this.ship.y, x, y) < Constants.ROID_SIZE * 2 + this.ship.r);
             const aster = new Asteroid(x, y, Math.ceil(Constants.ROID_SIZE / 2), this.level);
             this.asteroids.push(aster);
@@ -389,6 +387,7 @@ export class BattleScene {
                     this.gameOver();
                 } else {
                     this.ship = new Ship();
+                    registerKeyboardEvents(this.ship);
                 }
             }
         }
