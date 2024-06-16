@@ -25,11 +25,19 @@ const Constants = {
     SHIP_TURN_SPD: 360, // turn speed in degrees per second
 
     AUTOMATION_ON: true,
+    NUM_INPUTS: 4, // number input neurons ( asteroid x, asteroid y, ship angle)
+    NUM_HIDDEN: 20,  // number of hidden leyer neurons
+    NUM_OUTPUTS: 1, // one nuron only, 0 - Turn Left, 1 Turn Right
+    NUM_SAMPLES: 500000, // number of iteration on neural network to learn
+    OUTPUT_LEFT: 0, // expected neural output for turning left
+    OUTPUT_RIGHT: 1, // expected neural output for turning right
+    OUTPUT_THRESHOLD: 0.05, // how close the prediction must be to commit to a turn
+    RATE_OFFIRE: 15, // shots per second
 
     SHOW_BOUNDING: true, // show or hide collision bounding
     SHOW_CENTRE_DOT: false, // show or hide ships centre dot
 
-    MUSIC_ON: true,
+    MUSIC_ON: false,
     SOUND_ON: true,
     TEXT_FADE_TIME: 2.5, // text fade time in seconds
     TEXT_SIZE: 40, // text font height in pixels

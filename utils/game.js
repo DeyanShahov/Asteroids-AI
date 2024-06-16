@@ -10,6 +10,12 @@ export function checkScoreHigh(score, scoreHigh) {
     return scoreHigh;
 };
 
+export function angleToPoint(x, y, bearing, targetX, targetY) {
+    let angleToTarget = Math.atan2(-targetY + y, targetX - x);
+    let diff = bearing - angleToTarget;
+    return (diff + Math.PI * 2) % (Math.PI * 2);
+}
+
 
 // calculate the ratio of remaining asteroids to determine music tempo
 //asteroidsLeft--;

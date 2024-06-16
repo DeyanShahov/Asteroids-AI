@@ -18,7 +18,7 @@ export function registerKeyboardEvents(ship) {
 }
 
 function keyDown(ev, ship) {
-    if (ship.dead) return;
+    if (ship.dead || Constants.AUTOMATION_ON) return;
 
     ev.preventDefault();
 
@@ -27,20 +27,20 @@ function keyDown(ev, ship) {
             ship.shootLaser();
             break;
         case 37: // left arrow (rotate ship left)
-            ship.rot = Constants.SHIP_TURN_SPD / 180 * Math.PI / Constants.FPS;
+            rotateShip(ship, false);
             break;
         case 38: // up arrow (thrust the ship forward)
             ship.thrusting = true;
             break;
         case 39: // right arrow (rotate ship right)
-            ship.rot = -Constants.SHIP_TURN_SPD / 180 * Math.PI / Constants.FPS;
+            rotateShip(ship, true);
             break;
     }
 }
 
 function keyUp(ev, ship) {
 
-    if (ship.dead) return;
+    if (ship.dead || Constants.AUTOMATION_ON) return;
 
     ev.preventDefault();
 
@@ -58,4 +58,9 @@ function keyUp(ev, ship) {
             ship.rot = 0;
             break;
     }
+}
+
+export function rotateShip(ship, right) {
+    let sign = right ? -1 : 1;
+    ship.rot = Constants.SHIP_TURN_SPD / 180 * Math.PI / Constants.FPS * sign;
 }
