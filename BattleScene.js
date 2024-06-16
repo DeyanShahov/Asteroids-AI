@@ -1,13 +1,14 @@
 import Constants from './constants.js';
-import { registerKeyboardEvents, rotateShip } from './engine/InputKeyboardHandler.js';
+import { registerKeyboardEvents } from './engine/InputKeyboardHandler.js';
 import { music } from './engine/MusicHandler.js';
 import { fxThrust } from './engine/SoundHandler.js';
 import { Asteroid } from './entities/Asteroid.js';
 import { Ship } from './entities/Ship.js';
 import { distanceBetweenPoints } from './utils/asteroid.js';
-import { angleToPoint, checkScoreHigh } from './utils/game.js';
+import { checkScoreHigh } from './utils/game.js';
 import { pollGamepads, registerGamepadEvents } from './engine/InputGamepadHandler.js';
-import { NeuralNetwork } from './engine/NeuralNetwork.js';
+import { neuralNetworkTrein, predictionOfNetwork } from './utils/nNetwork.js';
+import { aiPlay } from './utils/nNetworkPlay.js';
 
 export class BattleScene {
     asteroids = [];
@@ -22,8 +23,7 @@ export class BattleScene {
     asteroidsLeft = 0;
     asteroidsTotal = 0;
 
-    nNetwork = undefined;
-    aiShootTime = 0;
+    //aiShootTime = 0;
 
     constructor() {
 
@@ -48,68 +48,13 @@ export class BattleScene {
             this.scoreHigh = parseInt(scoreStr);
         }
 
+        // SET UP THE NEURAL NETWORK!!!  
+        if (Constants.AUTOMATION_ON) neuralNetworkTrein(this.ship);
+
         // reset asteroid count before load new game
         this.asteroids = [];
 
         this.newLevel(canvas);
-
-        // set up the neural network
-       
-        if (Constants.AUTOMATION_ON) {
-            // TODO neural network
-            this.nNetwork = new NeuralNetwork(Constants.NUM_INPUTS, Constants.NUM_HIDDEN, Constants.NUM_OUTPUTS);
-
-            let ax, ay, sa, sx, sy;
-            for (let i = 0; i < Constants.NUM_SAMPLES; i++) {
-                // random asteroids location
-                ax = Math.random() * (canvas.width + Constants.ROID_SIZE) - Constants.ROID_SIZE / 2;
-                ay = Math.random() * (canvas.height + Constants.ROID_SIZE) - Constants.ROID_SIZE / 2;
-
-                // ship angle and position
-                sa = Math.random() * Math.PI * 2;
-                sx = this.ship.x;
-                sy = this.ship.y;
-
-                // calculate the angle to the asteroid
-                let angle = angleToPoint(sx, sy, sa, ax, ay);
-
-                // determinate the drirection to turn
-                let direction = angle > Math.PI ? Constants.OUTPUT_LEFT : Constants.OUTPUT_RIGHT;
-
-                // train the network
-                this.nNetwork.trein(this.normaliseInput(ax, ay, angle, sa, canvas), [direction]);
-            }
-
-            // // test train the network with XOR logic
-            // for (let i = 0; i < Constants.NUM_SAMPLES; i++) {
-            //     // TEST XOR logic
-            //     // 0 0 = 0
-            //     // 0 1 = 1
-            //     // 1 0 = 1
-            //     // 1 1 = 0
-
-            //     let input0 = Math.round(Math.random()); // 0 or 1 
-            //     let input1 = Math.round(Math.random()); // 0 or 1
-            //     let output = input0 == input1 ? 0 : 1;
-            //     nNetwork.trein([input0, input1], [output]); 
-            // }
-
-            // // test output
-            // console.log('0, 0 = ' + nNetwork.feedForward([0, 0]).data);
-            // console.log('0, 1 = ' + nNetwork.feedForward([0, 1]).data);
-            // console.log('1, 0 = ' + nNetwork.feedForward([1, 0]).data);
-            // console.log('1, 1 = ' + nNetwork.feedForward([1, 1]).data);
-        }
-    }
-
-    normaliseInput(roidX, roidY, roidAngle, shipA, canvas) {
-        // normalise the values to between 0 and 1
-        let input = [];
-        input[0] = (roidX + Constants.ROID_SIZE / 2) / (canvas.width + Constants.ROID_SIZE);
-        input[1] = (roidY + Constants.ROID_SIZE / 2) / (canvas.height + Constants.ROID_SIZE);
-        input[2] = roidAngle / (Math.PI * 2);
-        input[3] = shipA / (Math.PI * 2);
-        return input;
     }
 
     conditionForNewLevel(asteroidsLength, canvas) {
@@ -150,50 +95,17 @@ export class BattleScene {
 
     update(canvas, ctx) {
         pollGamepads(this.ship);
-        
+
         let blinkOn = this.ship.blinkNum % 2 === 0;
         let exploding = this.ship.explodeTime > 0;
 
         // use the neural network to rotate the ship and shoot
         if (Constants.AUTOMATION_ON) {
-            // compute the closest asteroid
-            let closestAsteroidIndex = 0;
-            let dist0 = distanceBetweenPoints(this.ship.x, this.ship.y, this.asteroids[0].x, this.asteroids[0].y);
-            for (let i = 1; i < this.asteroids.length; i++) {
-                let dist1 = distanceBetweenPoints(this.ship.x, this.ship.y, this.asteroids[i].x, this.asteroids[i].y);
-                if (dist1 < dist0) {
-                    dist0 = dist1;
-                    closestAsteroidIndex = i;
-                }
-            } 
-
             // make a prediction based on current data
-            let ax = this.asteroids[closestAsteroidIndex].x;
-            let ay = this.asteroids[closestAsteroidIndex].y;
-            let sa = this.ship.a;
-            let angle = angleToPoint(this.ship.x, this.ship.y, sa, ax, ay);
-            let predict = this.nNetwork.feedForward(this.normaliseInput(ax, ay, angle, sa, canvas)).data[0][0];
+            let predict = predictionOfNetwork(this.ship, this.asteroids);
 
-            // make a turn
-            let deltaLeft = Math.abs(predict - Constants.OUTPUT_LEFT);
-            let deltaRight = Math.abs(predict - Constants.OUTPUT_RIGHT);
-            if (deltaLeft < Constants.OUTPUT_THRESHOLD) {
-                rotateShip(this.ship, false);
-            } else if (deltaRight < Constants.OUTPUT_THRESHOLD) {
-                rotateShip(this.ship, true);
-            } else {
-                // stop rotatin
-                this.ship.rot = 0;
-            }
-
-            // shoot the laser
-            if (this.aiShootTime == 0) {
-                this.aiShootTime = Math.ceil(Constants.FPS / Constants.RATE_OFFIRE);
-                this.ship.canShoot = true;
-                this.ship.shootLaser();
-            } else {
-                this.aiShootTime--;
-            }
+            // comand ship based on the prediction
+            aiPlay(predict, this.ship);
         }
 
         // tick the music
