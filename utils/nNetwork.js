@@ -5,30 +5,46 @@ import { angleToPoint } from './game.js';
 
 let nNetwork = undefined;
 
-export function neuralNetworkTrein(ship) {
-    nNetwork = new NeuralNetwork(Constants.NUM_INPUTS, Constants.NUM_HIDDEN, Constants.NUM_OUTPUTS);
+export async function prepereNeuralNetwork(ship) {
+    // check for network in data file
+    let loadNetwork = await loadNetworkFromDataFile();
+    if (loadNetwork != null && loadNetwork instanceof NeuralNetwork) nNetwork = loadNetwork;
+    // on missing or error in data file, check in localStorage
+    if (loadNetwork == null) {
+        const data = loadNetworkFromLoacalStorage();
+        if (data != null && data instanceof NeuralNetwork) nNetwork = data;
+    }
 
-    let ax, ay, sa, sx, sy;
+    if (nNetwork == undefined && !(nNetwork instanceof NeuralNetwork)) neuralNetworkTrein(ship);
+}
 
-    for (let i = 0; i < Constants.NUM_SAMPLES; i++) {
-        // random asteroids location
-        ax = Math.random() * (Constants.SCREEN_WIDTH + Constants.ROID_SIZE) - Constants.ROID_SIZE / 2;
-        ay = Math.random() * (Constants.SCREEN_HEIGHT + Constants.ROID_SIZE) - Constants.ROID_SIZE / 2;
+function neuralNetworkTrein(ship) {
+        console.log('Train new neural network ...');
+        nNetwork = new NeuralNetwork(Constants.NUM_INPUTS, Constants.NUM_HIDDEN, Constants.NUM_OUTPUTS);
 
-        // ship angle and position
-        sa = Math.random() * Math.PI * 2;
-        sx = ship.x;
-        sy = ship.y;
+        let ax, ay, sa, sx, sy;
 
-        // calculate the angle to the asteroid
-        let angle = angleToPoint(sx, sy, sa, ax, ay);
+        for (let i = 0; i < Constants.NUM_SAMPLES; i++) {
+            // random asteroids location
+            ax = Math.random() * (Constants.SCREEN_WIDTH + Constants.ROID_SIZE) - Constants.ROID_SIZE / 2;
+            ay = Math.random() * (Constants.SCREEN_HEIGHT + Constants.ROID_SIZE) - Constants.ROID_SIZE / 2;
 
-        // determinate the drirection to turn
-        let direction = angle > Math.PI ? Constants.OUTPUT_LEFT : Constants.OUTPUT_RIGHT;
+            // ship angle and position
+            sa = Math.random() * Math.PI * 2;
+            sx = ship.x;
+            sy = ship.y;
 
-        // train the network
-        nNetwork.trein(normaliseInputToNetwork(ax, ay, angle, sa), [direction]);
+            // calculate the angle to the asteroid
+            let angle = angleToPoint(sx, sy, sa, ax, ay);
 
+            // determinate the drirection to turn
+            let direction = angle > Math.PI ? Constants.OUTPUT_LEFT : Constants.OUTPUT_RIGHT;
+
+            // train the network
+            nNetwork.trein(normaliseInputToNetwork(ax, ay, angle, sa), [direction]);
+
+
+        }
         // // test train the network with XOR logic
         // for (let i = 0; i < Constants.NUM_SAMPLES; i++) {
         //     // TEST XOR logic
@@ -48,7 +64,10 @@ export function neuralNetworkTrein(ship) {
         // console.log('0, 1 = ' + nNetwork.feedForward([0, 1]).data);
         // console.log('1, 0 = ' + nNetwork.feedForward([1, 0]).data);
         // console.log('1, 1 = ' + nNetwork.feedForward([1, 1]).data);
-    }
+
+        // save trained network
+        console.log('Ready newly trained neural network!');
+        saveNetworkToLocalStorage(nNetwork);
 }
 
 export function normaliseInputToNetwork(roidX, roidY, roidAngle, shipA) {
@@ -87,3 +106,46 @@ function calculateClosestAsteroid(ship, asteroids) {
     }
     return closestAsteroidIndex;
 }
+
+function saveNetworkToLocalStorage(neuralNetwork) {
+    try {
+        const data = JSON.stringify(neuralNetwork.toJSON());
+        localStorage.setItem('trainedNetwork', data);
+        console.log('Network saved to localStorage');
+    } catch (error) {
+        console.error('Failed to save network to localStorage:', error);
+    }
+}
+
+function loadNetworkFromLoacalStorage() {
+    try {
+        const data = localStorage.getItem('trainedNetwork');
+        if (data) {
+            console.log('Loaded network from localStorage');
+            const parsedData = JSON.parse(data);
+            return NeuralNetwork.fromJSON(parsedData);
+        } 
+        if (data == null)  console.log('Local Storage dont contain saved neural network!');
+    } catch (error) {
+        console.error('Failed to load network from localStorage:', error);
+        return null;
+    } 
+}
+
+async function loadNetworkFromDataFile() {
+    try {
+        const response = await fetch('../ddata/readyToUseAi.json');
+        if (!response.ok) throw new Error('Network respons was not ok');
+        console.log('Loaded network from data file');
+        const data = await response.json();
+        return NeuralNetwork.fromJSON(data);
+        //return data;
+    } catch (error) {
+        console.error('Failed to load network from data file (radyToUseAi.json): ', error);
+        return null;
+    }
+}
+
+
+
+

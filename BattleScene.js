@@ -7,7 +7,7 @@ import { Ship } from './entities/Ship.js';
 import { distanceBetweenPoints } from './utils/asteroid.js';
 import { checkScoreHigh } from './utils/game.js';
 import { pollGamepads, registerGamepadEvents } from './engine/InputGamepadHandler.js';
-import { neuralNetworkTrein, predictionOfNetwork } from './utils/nNetwork.js';
+import { predictionOfNetwork, prepereNeuralNetwork } from './utils/nNetwork.js';
 import { aiPlay } from './utils/nNetworkPlay.js';
 
 export class BattleScene {
@@ -47,7 +47,7 @@ export class BattleScene {
         }
 
         // SET UP THE NEURAL NETWORK!!!  
-        if (Constants.AUTOMATION_ON) neuralNetworkTrein(this.ship);
+        if (Constants.AUTOMATION_ON) prepereNeuralNetwork(this.ship);
 
         // reset asteroid count before load new game
         this.asteroids = [];
