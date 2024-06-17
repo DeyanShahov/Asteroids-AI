@@ -1,4 +1,5 @@
 import Constants from '../constants.js';
+import { ENABLE_AI } from '../utils/gameUiSetings.js';
 
 let currentShip = null;
 
@@ -18,7 +19,8 @@ export function registerKeyboardEvents(ship) {
 }
 
 function keyDown(ev, ship) {
-    if (ship.dead || Constants.AUTOMATION_ON) return;
+    //if (ship.dead || Constants.AUTOMATION_ON) return;
+    if (ship.dead || ENABLE_AI) return;
 
     ev.preventDefault();
 
@@ -39,8 +41,8 @@ function keyDown(ev, ship) {
 }
 
 function keyUp(ev, ship) {
-
-    if (ship.dead || Constants.AUTOMATION_ON) return;
+    //if (ship.dead || Constants.AUTOMATION_ON) return;
+    if (ship.dead || ENABLE_AI) return;
 
     ev.preventDefault();
 

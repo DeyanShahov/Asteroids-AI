@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asteroids</title>
     <style>
-        body, html {
+       body, html {
             margin: 0;
             padding: 0;
             width: 100%;
@@ -15,6 +15,7 @@
             justify-content: center;
             align-items: center;
             background-color: #333;
+            flex-direction: column;
         }
 
         #gameContainer {
@@ -29,14 +30,39 @@
             width: 100%;
             height: auto;
         }
+
+        #checkboxContainer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        #checkboxContainer div {
+            margin: 0 10px;
+            color: #fff; 
+        }
     </style>
 </head>
 <body>
-    
+    <div id="checkboxContainer">
+        <div>
+            <input id="debugBox" type="checkbox"/>
+            <label for="debugBox">DebugBox</label>
+        </div>
+        <div>
+            <input id="debugLog" type="checkbox" checked/>
+            <label for="debugLog">DebugLog</label>
+        </div>
+        <div>
+            <input id="ai" type="checkbox"/>
+            <label for="ai">AI</label>
+        </div>
+    </div>
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
     </div>
-
+    
     <script type="module" src="./AsteroidsGames.js"></script>
     <script type="text/javascript" src="./engine/NeuralNetwork.js"></script>
 </body>

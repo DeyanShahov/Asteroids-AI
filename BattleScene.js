@@ -9,6 +9,7 @@ import { checkScoreHigh } from './utils/game.js';
 import { pollGamepads, registerGamepadEvents } from './engine/InputGamepadHandler.js';
 import { predictionOfNetwork, prepereNeuralNetwork } from './utils/nNetwork.js';
 import { aiPlay } from './utils/nNetworkPlay.js';
+import { DEBUG_BOX_ENABLE, ENABLE_AI } from './utils/gameUiSetings.js';
 
 export class BattleScene {
     asteroids = [];
@@ -22,6 +23,8 @@ export class BattleScene {
 
     asteroidsLeft = 0;
     asteroidsTotal = 0;
+
+    isAiNotPlaying = ENABLE_AI ?  false : true;
 
     constructor() {
 
@@ -98,12 +101,19 @@ export class BattleScene {
         let exploding = this.ship.explodeTime > 0;
 
         // use the neural network to rotate the ship and shoot
-        if (Constants.AUTOMATION_ON) {
+        if (Constants.AUTOMATION_ON && ENABLE_AI) {
+            this.isAiNotPlaying = false;
             // make a prediction based on current data
             let predict = predictionOfNetwork(this.ship, this.asteroids);
 
             // comand ship based on the prediction
-            aiPlay(predict, this.ship);
+            aiPlay(predict, this.ship);     
+        }
+
+        // stop afther AI play endles rotation ...
+        if (!this.isAiNotPlaying && !ENABLE_AI) {
+            this.isAiNotPlaying = true;
+            this.ship.rot = 0;
         }
 
         // tick the music
@@ -145,7 +155,7 @@ export class BattleScene {
             ctx.stroke();
 
             // show asteroid's collision circle
-            if (Constants.SHOW_BOUNDING) {
+            if (Constants.SHOW_BOUNDING || DEBUG_BOX_ENABLE) {
                 ctx.strokeStyle = 'lime';
                 ctx.beginPath();
                 ctx.arc(x, y, r, 0, Math.PI * 2, false);
@@ -232,7 +242,7 @@ export class BattleScene {
         }
 
         // show ship's collision circle
-        if (Constants.SHOW_BOUNDING) {
+        if (Constants.SHOW_BOUNDING || DEBUG_BOX_ENABLE) {
             ctx.strokeStyle = 'lime';
             ctx.beginPath();
             ctx.arc(this.ship.x, this.ship.y, this.ship.r, 0, Math.PI * 2, false);
@@ -285,7 +295,7 @@ export class BattleScene {
 
         // draw the lives
         let lifeColour;
-        for (let i = 0; i < this.lives; i++) {
+        for (let i = 0; i < this.lives - 1; i++) {
             lifeColour = exploding && i === this.lives - 1 ? 'red' : 'white';
             this.ship.drawShip(ctx, Constants.SHIP_SIZE + i * Constants.SHIP_SIZE * 1.2, Constants.SHIP_SIZE, 0.5 * Math.PI, lifeColour);
         }
