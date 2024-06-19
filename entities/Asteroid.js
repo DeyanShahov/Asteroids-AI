@@ -10,13 +10,88 @@ export class Asteroid {
         this.yv = getSpeedForAsteroid(lvlMulti);
         this.a = Math.random() * Math.PI * 2; // in radians
         this.r = asteroidRadius;
+        this.vectorEndPoint = { x: 0, y: 0 };
         this.offs = [];
         this.vert = Math.floor(Math.random() * (Constants.ROID_VERT + 1) + Constants.ROID_VERT / 2);
-
         // populate the offsets array
         for (let i = 0; i < this.vert; i++) {
             this.offs.push(Math.random() * Constants.ROID_JAG * 2 + 1 - Constants.ROID_JAG);
         }
+    }
+
+
+    drawAsteroidVector(ctx, dangerous = false) {
+        // Line color ant thickness
+        ctx.strokeStyle = dangerous ? '#FFCCCB' : 'blue';
+        ctx.lineWidth = 1;
+
+        ctx.beginPath(); // Starting a new path
+
+        ctx.moveTo(this.x, this.y); // Starting point - the center of the asteroid
+
+        // Calculate the end point of the vactor to the end of the screen
+        this.vectorEndPoint = this.calculateEndPointToBoundary(this.x, this.y, this.xv, this.yv, Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT);
+
+        ctx.lineTo(this.vectorEndPoint.x, this.vectorEndPoint.y); // End point
+
+        ctx.closePath();
+
+        ctx.save();
+
+        ctx.setLineDash([8, 8]);  // Create a hatched effect    
+        ctx.lineWidth = 1;
+
+        ctx.stroke(); // Draw the line
+
+        ctx.restore();
+    };
+
+    calculateEndPointToBoundary(x, y, xv, yv, canvasWidth, canvasHeight) {
+        let tMin = Infinity;
+        let endX = x;
+        let endY = y;
+
+        // Checking for intersection with the right boundary
+        if (xv > 0) {
+            const t = (canvasWidth - x) / xv;
+            if (t < tMin) {
+                tMin = t;
+                endX = canvasWidth;
+                endY = y + yv * t;
+            }
+        }
+
+        // Checking for intersection with the left boundary
+        if (xv < 0) {
+            const t = -x / xv;
+            if (t < tMin) {
+                tMin = t;
+                endX = 0;
+                endY = y + yv * t;
+            }
+        }
+
+        // Check for intersection with the lower bound
+        if (yv > 0) {
+            const t = (canvasHeight - y) / yv;
+            if (t < tMin) {
+                tMin = t;
+                endY = canvasHeight;
+                endX = x + xv * t;
+            }
+        }
+
+        // Check for intersection with the upper bound
+        if (yv < 0) {
+            const t = -y / yv;
+            if (t < tMin) {
+                tMin = t;
+                endY = 0;
+                endX = x + xv * t;
+            }
+        }
+
+        return { x: endX, y: endY };
     }
 
     destroy(asteroids, index, gameLevel) {
@@ -53,6 +128,6 @@ export class Asteroid {
 function getSpeedForAsteroid(lvlMulti) {
     let speed = Math.random() * Constants.ROID_SPD * lvlMulti / Constants.FPS;
     if (speed <= 0.2) speed = 0.2;
-    speed = speed  * (Math.random() < 0.5 ? 1 : -1);
+    speed = speed * (Math.random() < 0.5 ? 1 : -1);
     return speed;
 }

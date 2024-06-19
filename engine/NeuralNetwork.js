@@ -1,6 +1,5 @@
 "use strict";
-
-const LOG_ON = false; // whether ot not to show error logging
+const LOG_ON = true; // whether ot not to show error logging
 const LOG_FREQUENSY = 20000; // how often to show error logs (in iterations)
 
 // NEURAL NETWORK input/hidden/output

@@ -5,7 +5,7 @@ import { fxThrust } from './engine/SoundHandler.js';
 import { Asteroid } from './entities/Asteroid.js';
 import { Ship } from './entities/Ship.js';
 import { distanceBetweenPoints } from './utils/asteroid.js';
-import { checkScoreHigh } from './utils/game.js';
+import { checkScoreHigh, drawCircle } from './utils/game.js';
 import { pollGamepads, registerGamepadEvents } from './engine/InputGamepadHandler.js';
 import { predictionOfNetwork, prepereNeuralNetwork } from './utils/nNetwork.js';
 import { aiPlay } from './utils/nNetworkPlay.js';
@@ -24,7 +24,7 @@ export class BattleScene {
     asteroidsLeft = 0;
     asteroidsTotal = 0;
 
-    isAiNotPlaying = ENABLE_AI ?  false : true;
+    isAiNotPlaying = ENABLE_AI ? false : true;
 
     constructor() {
 
@@ -37,23 +37,20 @@ export class BattleScene {
         this.ship = new Ship();
         this.scoreHigh = 0;
 
-        // set up event handlers
+        // Set up event handlers
         registerKeyboardEvents(this.ship);
         registerGamepadEvents();
 
-        // get the high score from local storage
+        // Get the high score from local storage
         let scoreStr = localStorage.getItem(Constants.SAVE_KEY_SCORE);
-        if (scoreStr === null) {
-            this.scoreHigh = 0;
-        } else {
-            this.scoreHigh = parseInt(scoreStr);
-        }
+        if (scoreStr === null) this.scoreHigh = 0;
+        else this.scoreHigh = parseInt(scoreStr);
 
-        // SET UP THE NEURAL NETWORK!!!  
-        if (Constants.AUTOMATION_ON) prepereNeuralNetwork(this.ship);
-
-        // reset asteroid count before load new game
+        // Reset asteroid count before load new game
         this.asteroids = [];
+        this.createAsteroidBelt();
+
+        if (Constants.AUTOMATION_ON) prepereNeuralNetwork(this.ship, this.asteroids);  // SET UP THE NEURAL NETWORK!!!  
 
         this.newLevel();
     }
@@ -69,7 +66,7 @@ export class BattleScene {
         music.setAsteroidRatio(1);
         this.text = 'Level ' + (this.level + 1);
         this.textAlpha = 1.0;
-        this.createAsteroidBelt();
+        if (this.level > 0) this.createAsteroidBelt();
     }
 
     gameOver() {
@@ -84,7 +81,7 @@ export class BattleScene {
 
         let x, y;
         for (let i = 0; i < Constants.ROID_NUM + this.level * 5; i++) {
-            // random asteroidlocation ( not touching spcaeship )
+            // Random asteroidlocation ( not touching spcaeship )
             do {
                 x = Math.floor(Math.random() * Constants.SCREEN_WIDTH);
                 y = Math.floor(Math.random() * Constants.SCREEN_HEIGHT);
@@ -99,37 +96,38 @@ export class BattleScene {
 
         let blinkOn = this.ship.blinkNum % 2 === 0;
         let exploding = this.ship.explodeTime > 0;
+        let targetAsteroids;
 
-        // use the neural network to rotate the ship and shoot
-        if (Constants.AUTOMATION_ON && ENABLE_AI) {
+        let result = predictionOfNetwork(this.ship, this.asteroids); // Make a prediction based on current data
+
+        targetAsteroids = result.indexAsteroidsOfInterest;
+
+        // Use the neural network to rotate the ship and shoot
+        if (Constants.AUTOMATION_ON && ENABLE_AI && this.asteroids.length != 0) {
             this.isAiNotPlaying = false;
-            // make a prediction based on current data
-            let predict = predictionOfNetwork(this.ship, this.asteroids);
 
-            // comand ship based on the prediction
-            aiPlay(predict, this.ship);     
+            aiPlay(result.predict, this.ship); // Comand ship based on the prediction
         }
 
-        // stop afther AI play endles rotation ...
+        // Stop afther AI play endles rotation ...
         if (!this.isAiNotPlaying && !ENABLE_AI) {
             this.isAiNotPlaying = true;
             this.ship.rot = 0;
         }
 
-        // tick the music
-        music.tick();
+        music.tick(); // Tick the music
 
-        // draw space
+        // Draw space
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // draw the asteroids
+        // Draw the asteroids
         let a, r, x, y, offs, vert;
         for (let i = 0; i < this.asteroids.length; i++) {
             ctx.strokeStyle = 'slategrey';
             ctx.lineWidth = Constants.SHIP_SIZE / 20;
 
-            // get the asteroids properties
+            // Get the asteroids properties
             a = this.asteroids[i].a;
             r = this.asteroids[i].r;
             x = this.asteroids[i].x;
@@ -137,14 +135,14 @@ export class BattleScene {
             offs = this.asteroids[i].offs;
             vert = this.asteroids[i].vert;
 
-            // draw the path
+            // Draw the path
             ctx.beginPath();
             ctx.moveTo(
                 x + r * offs[0] * Math.cos(a),
                 y + r * offs[0] * Math.sin(a)
             );
 
-            // draw the polygon
+            // Draw the polygon
             for (var j = 1; j < vert; j++) {
                 ctx.lineTo(
                     x + r * offs[j] * Math.cos(a + j * Math.PI * 2 / vert),
@@ -152,25 +150,38 @@ export class BattleScene {
                 );
             }
             ctx.closePath();
+
+            ctx.fillStyle = 'rgba(211, 211, 211, 0.5)'; // Translucent light gray
+            ctx.fill();
+
             ctx.stroke();
 
-            // show asteroid's collision circle
-            if (Constants.SHOW_BOUNDING || DEBUG_BOX_ENABLE) {
-                ctx.strokeStyle = 'lime';
-                ctx.beginPath();
-                ctx.arc(x, y, r, 0, Math.PI * 2, false);
-                ctx.stroke();
+            if (DEBUG_BOX_ENABLE) {
+                // Show farthest from the ship asteroid 
+                if (targetAsteroids.farthestAsteroid == i) drawCircle(x, y, r + 3, ctx, 'yellow');
+
+                // Show closest to the ship asteroid
+                if (targetAsteroids.closestAsteroid == i) drawCircle(x, y, r + 6, ctx, 'orange');
+
+                // Show dangerous asteroids
+                let dangerousAsteroids = targetAsteroids.dangerousAsteroids.includes(i);
+                if (dangerousAsteroids) drawCircle(x, y, r + 9, ctx, 'red');
+                // Draw the vector of asteroid
+
+                this.asteroids[i].drawAsteroidVector(ctx, dangerousAsteroids ? true : false);
+
+                // Show asteroid's collision circle
+                drawCircle(x, y, r, ctx, 'lime');
             }
         }
 
-
-        // thrust the ship
+        // Thrust the ship
         if (this.ship.thrusting && !this.ship.dead) {
             this.ship.thrust.x += Constants.SHIP_THRUST * Math.cos(this.ship.a) / Constants.FPS;
             this.ship.thrust.y -= Constants.SHIP_THRUST * Math.sin(this.ship.a) / Constants.FPS;
             fxThrust.play();
 
-            // draw the thruster
+            // Draw the thruster
             if (!exploding && blinkOn) {
                 ctx.fillStyle = 'red';
                 ctx.strokeStyle = 'yellow';
@@ -199,7 +210,7 @@ export class BattleScene {
             fxThrust.stop();
         }
 
-        // draw the triangular ship
+        // Draw the triangular ship
         if (!exploding) {
             if (blinkOn && !this.ship.dead) {
                 this.ship.drawShip(ctx, this.ship.x, this.ship.y, this.ship.a);
@@ -242,12 +253,7 @@ export class BattleScene {
         }
 
         // show ship's collision circle
-        if (Constants.SHOW_BOUNDING || DEBUG_BOX_ENABLE) {
-            ctx.strokeStyle = 'lime';
-            ctx.beginPath();
-            ctx.arc(this.ship.x, this.ship.y, this.ship.r, 0, Math.PI * 2, false);
-            ctx.stroke();
-        }
+        if (DEBUG_BOX_ENABLE) drawCircle(this.ship.x, this.ship.y, this.ship.r, ctx, 'lime');
 
         // show ship's centre dot
         if (Constants.SHOW_CENTRE_DOT) {
@@ -289,8 +295,7 @@ export class BattleScene {
             ctx.fillText(this.text, canvas.width / 2, canvas.height * 0.75);
             this.textAlpha -= (1.0 / Constants.TEXT_FADE_TIME / Constants.FPS);
         } else if (this.ship.dead) {
-            // after "game over" fades, start a new game
-            this.newGame(canvas);
+            this.newGame(canvas); // After "game over" fades, start a new game
         }
 
         // draw the lives
@@ -377,11 +382,8 @@ export class BattleScene {
             this.ship.a += this.ship.rot;
 
             // keep the angle between 0 and 360 ( two PI)
-            if (this.ship.a < 0) {
-                this.ship.a += (Math.PI * 2);
-            } else if (this.ship.a >= Math.PI * 2) {
-                this.ship.a -= (Math.PI * 2)
-            }
+            if (this.ship.a < 0) this.ship.a += (Math.PI * 2);
+            else if (this.ship.a >= Math.PI * 2) this.ship.a -= (Math.PI * 2)
 
             // move the ship
             this.ship.x += this.ship.thrust.x;
@@ -402,22 +404,15 @@ export class BattleScene {
             }
         }
 
-
         // handle edge of screen
-        if (this.ship.x < 0 - this.ship.r) {
-            this.ship.x = canvas.width + this.ship.r;
-        } else if (this.ship.x > canvas.width + this.ship.r) {
-            this.ship.x = 0 - this.ship.r;
-        }
-        if (this.ship.y < 0 - this.ship.r) {
-            this.ship.y = canvas.height + this.ship.r;
-        } else if (this.ship.y > canvas.height + this.ship.r) {
-            this.ship.y = 0 - this.ship.r;
-        }
+        if (this.ship.x < 0 - this.ship.r) this.ship.x = canvas.width + this.ship.r;
+        else if (this.ship.x > canvas.width + this.ship.r) this.ship.x = 0 - this.ship.r;
+
+        if (this.ship.y < 0 - this.ship.r) this.ship.y = canvas.height + this.ship.r;
+        else if (this.ship.y > canvas.height + this.ship.r) this.ship.y = 0 - this.ship.r;
 
         // move the lasers
         for (let i = this.ship.lasers.length - 1; i >= 0; i--) {
-
             // check distance travelled
             if (this.ship.lasers[i].dist > Constants.LASER_DIST * canvas.width) {
                 this.ship.lasers.splice(i, 1);

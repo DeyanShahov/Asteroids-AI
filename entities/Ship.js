@@ -1,7 +1,7 @@
 import Constants from '../constants.js';
 import { fxExplode, fxLaser } from '../engine/SoundHandler.js';
 
-export class Ship {
+export class Ship { 
     constructor() {
         this.x = Constants.SCREEN_WIDTH / 2;
         this.y = Constants.SCREEN_HEIGHT / 2;
